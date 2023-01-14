@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 type Edge struct {
@@ -88,11 +89,19 @@ func parseEntry(entry string) (result map[string][]string) {
 
 func main() {
 	europeMap := "sp pt fr an\nfr it be lu ch de an\nbe lu nl\nde be nl lu dk pl cz at ch li\nit ch si at\nat ch li si hu sk\nhr hu si ba rs me\nmk al bg el rs\nbg el ro tr\nrs me al ro hu ba\nba me\nsi hu\nsk hu cz ua pl\npl ru lt by ua cz\nua ro by ru md\nro mo hu\nfi se no ru\nno se ru\nlv ru lt ee bg\nru ee lt bg ge az\ntr am ge\nge az"
+
+	start := time.Now()
 	parsedEntry := parseEntry(europeMap)
+	elapsedParse := time.Since(start)
 
 	var graph Graph
+	start2 := time.Now()
 	for node, neighbors := range parsedEntry {
 		graph.insertNode(node, neighbors)
 	}
+	elapsedAddNodes := time.Since(start2)
+
 	graph.print()
+	fmt.Println("\nTime taken to parse the entry:", elapsedParse)
+	fmt.Println("Time taken to add all the nodes:", elapsedAddNodes)
 }
