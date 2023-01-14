@@ -51,6 +51,13 @@ func (graph *Graph) print() {
 	}
 }
 
+// Searches a given string [str] in a slice of strings
+// Returns a tuple of the index and the boolean value of the existence
+func searchIn(str string, slice []string) (int, bool) {
+
+	return -1, false
+}
+
 // Parses an entry like "sp fr\nfr it be", where sp is the node and the other
 // two-chars code are its neighbors
 func parseEntry(entry string) (result map[string][]string) {
@@ -63,11 +70,24 @@ func parseEntry(entry string) (result map[string][]string) {
 		neighbors := data[1:]
 		result[node] = neighbors
 	}
+
+	// Get missing nodes because of the way the entry is given
+	justAdded := make([]string, 0)
+	for node, neighbors := range result {
+		for _, neighbor := range neighbors {
+			if _, exists := result[neighbor]; !exists {
+				justAdded = append(justAdded, neighbor)
+				result[neighbor] = []string{node}
+			} else if _, recentlyAdded := searchIn(neighbor, justAdded); exists && recentlyAdded {
+				result[neighbor] = append(result[neighbor], node)
+			}
+		}
+	}
 	return
 }
 
 func main() {
-	europeMap := "sp pt fr an\nfr it be lu ch de an\nbe lu nl\nde be nl lu dk pl cz at ch li\nit ch si at\nat ch li si hu sk\nhr hu si ba rs me\nmk al bg el rs\nbg el ro tr \nrs me al ro hu ba \nba me\nsi hu \nsk hu cz ua pl\npl ru lt by ua cz\nua ro by ru md\nro mo hu \nfi se no ru \nno se ru\nlv ru lt ee bg\nru ee lt bg ge az\ntr am ge\nge az"
+	europeMap := "sp pt fr an\nfr it be lu ch de an\nbe lu nl\nde be nl lu dk pl cz at ch li\nit ch si at\nat ch li si hu sk\nhr hu si ba rs me\nmk al bg el rs\nbg el ro tr\nrs me al ro hu ba\nba me\nsi hu\nsk hu cz ua pl\npl ru lt by ua cz\nua ro by ru md\nro mo hu\nfi se no ru\nno se ru\nlv ru lt ee bg\nru ee lt bg ge az\ntr am ge\nge az"
 	parsedEntry := parseEntry(europeMap)
 
 	var graph Graph
