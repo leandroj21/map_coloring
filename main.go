@@ -24,8 +24,9 @@ type Node struct {
 type Graph struct {
 	nodes []*Node
 	// nil by default
-	indexes map[string]int
-	inited  bool
+	indexes      map[string]int
+	inited       bool
+	nodesColored int
 }
 
 // Inserts a node in the graph
@@ -54,9 +55,15 @@ func (graph *Graph) insertNode(nodeLabel string, edgesLabels []string) {
 }
 
 // Prints the current state of the graph
-func (graph *Graph) print() {
+func (graph *Graph) printState() {
 	for index, node := range graph.nodes {
 		fmt.Printf("(%2d) %s --> %v\n", index, node.label, node.neighbors)
+	}
+}
+
+func (graph *Graph) printTuples() {
+	for _, node := range graph.nodes {
+		fmt.Printf("(%s, %d)%s", node.label, node.color, ", ")
 	}
 }
 
@@ -128,31 +135,41 @@ func (graph *Graph) isSafeToColor(color, index int) bool {
 	return true
 }
 
-func getNextColor(color int) (next int) {
-	next = color + 1
-	if next > amountOfColors {
-		next = 1
+func (graph *Graph) getIndexUncoloredNeighbor(index int) int {
+	for _, neighbor := range graph.nodes[index].neighbors {
+		neighborIndex := graph.indexes[neighbor.label]
+		if graph.nodes[neighborIndex].color == 0 {
+			return neighborIndex
+		}
 	}
-	return
+	return -1
 }
 
 // Colors every node, but a node and any of its neighbors cannot have
 // the same color
-func (graph *Graph) color() {
-	currentColor := 1
-	for nodeIndex, node := range graph.nodes {
-		if node.color != 0 {
+func (graph *Graph) color(index int) bool {
+	if graph.nodesColored >= len(graph.nodes) {
+		return true
+	}
+
+	for c := 1; c <= amountOfColors; c++ {
+		if !graph.isSafeToColor(c, index) {
 			continue
 		}
 
-		for {
-			if graph.isSafeToColor(currentColor, nodeIndex) {
-				graph.nodes[nodeIndex].color = currentColor
-				break
-			}
-			currentColor = getNextColor(currentColor)
+		graph.nodes[index].color = c
+		graph.nodesColored++
+
+		nextIdx := index + 1
+		if graph.color(nextIdx) {
+			return true
 		}
+
+		graph.nodes[index].color = 0
+		graph.nodesColored--
 	}
+
+	return false
 }
 
 func testColoringMap(graph *Graph) {
@@ -194,6 +211,7 @@ func main() {
 		graph.insertNode(node, neighbors)
 	}
 	testInsert(&graph)
-	graph.color()
+	graph.color(0)
 	testColoringMap(&graph)
+	graph.printTuples()
 }
