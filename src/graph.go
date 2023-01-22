@@ -3,6 +3,7 @@ package src
 import "fmt"
 
 const amountOfColors int = 4
+const tuplesInOneLine int = 5
 
 type Edge struct {
 	Label string
@@ -55,16 +56,31 @@ func (graph *Graph) InsertNode(nodeLabel string, edgesLabels []string) {
 	return
 }
 
-// Prints the current state of the graph
-func (graph *Graph) printState() {
+// InsertNodesInOrder inserts nodes in a specific order into the node's array
+func (graph *Graph) InsertNodesInOrder(data map[string][]string, order []string) {
+	for _, nodeLabel := range order {
+		graph.InsertNode(nodeLabel, data[nodeLabel])
+	}
+}
+
+// PrintState Prints the current state of the graph
+func (graph *Graph) PrintState() {
 	for index, node := range graph.Nodes {
 		fmt.Printf("(%2d) %s --> %v\n", index, node.Label, node.Neighbors)
 	}
 }
 
-func (graph *Graph) printTuples() {
+// PrintTuples prints the graph in tuples, such as ([node], [node color])
+func (graph *Graph) PrintTuples() {
+	lineCount := 0
 	for _, node := range graph.Nodes {
 		fmt.Printf("(%s, %d)%s", node.Label, node.Color, ", ")
+		lineCount++
+
+		if lineCount >= tuplesInOneLine {
+			fmt.Println("")
+			lineCount = 0
+		}
 	}
 }
 

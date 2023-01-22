@@ -3,7 +3,6 @@ package main
 import (
 	"coloring_map/src"
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -40,41 +39,6 @@ func testInsert(g *src.Graph) {
 	}
 }
 
-// Parses an entry like "sp fr\nfr it be", where sp is the node and the other
-// two-chars code are its neighbors
-func parseEntry(entry string) (result map[string][]string) {
-	result = make(map[string][]string)
-
-	lines := strings.Split(entry, "\n")
-	for _, line := range lines {
-		data := strings.Split(line, " ")
-		node := data[0]
-		neighbors := data[1:]
-		result[node] = neighbors
-	}
-
-	// Get missing nodes because of the way the entry is given
-	justAdded := make([]string, 0)
-	for node, neighbors := range result {
-		for _, neighbor := range neighbors {
-			// Map the neighbors that are not mapped
-			if _, exists := result[neighbor]; !exists {
-				justAdded = append(justAdded, neighbor)
-				result[neighbor] = []string{node}
-			} else if _, recentlyAdded := src.SearchIn(neighbor, justAdded); exists && recentlyAdded {
-				result[neighbor] = append(result[neighbor], node)
-			}
-
-			// Get missing links
-			if _, exists := src.SearchIn(node, result[neighbor]); !exists {
-				result[neighbor] = append(result[neighbor], node)
-			}
-		}
-	}
-
-	return
-}
-
 func printTimeResults(parseTime, insertTime, coloringTime time.Duration) {
 	fmt.Println("TIME RESULTS:")
 	fmt.Println("\tParse time:", parseTime)
@@ -93,14 +57,12 @@ func main() {
 	for mapName, countries := range maps {
 		fmt.Printf("\n------%s------\n", mapName)
 		start = time.Now()
-		parsedEntry := parseEntry(countries)
+		parsedEntry, order := src.ParseEntry(countries)
 		parseTime = time.Since(start)
 
 		var graph src.Graph
 		start = time.Now()
-		for node, neighbors := range parsedEntry {
-			graph.InsertNode(node, neighbors)
-		}
+		graph.InsertNodesInOrder(parsedEntry, order)
 		insertTime = time.Since(start)
 
 		testInsert(&graph)
@@ -112,5 +74,8 @@ func main() {
 		testMapColoring(&graph)
 
 		printTimeResults(parseTime, insertTime, coloringTime)
+
+		fmt.Printf("\nCOLORING RESULT:\n")
+		graph.PrintTuples()
 	}
 }
