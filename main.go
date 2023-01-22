@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 const amountOfColors int = 4
@@ -175,7 +176,6 @@ func (graph *Graph) color(index int) bool {
 func testColoringMap(graph *Graph) {
 	someError := false
 	var fails uint
-	fmt.Println("\nTESTING MAP COLORING...")
 	for _, node := range graph.nodes {
 		for _, neighbor := range node.neighbors {
 			if graph.nodes[graph.indexes[neighbor.label]].color == node.color {
@@ -202,16 +202,38 @@ func testInsert(g *Graph) {
 	}
 }
 
-func main() {
-	europeMap := "sp pt fr an\nfr it be lu ch de an\nbe lu nl\nde be nl lu dk pl cz at ch li\nit ch si at\nat ch li si hu sk\nhr hu si ba rs me\nmk al bg el rs\nbg el ro tr\nrs me al ro hu ba\nba me\nsi hu\nsk hu cz ua pl\npl ru lt by ua cz\nua ro by ru md\nro mo hu\nfi se no ru\nno se ru\nlv ru lt ee bg\nru ee lt bg ge az\ntr am ge\nge az"
+func printTimeResults(parseTime, insertTime, coloringTime time.Duration) {
+	fmt.Println("TIME RESULTS:")
+	fmt.Println("\tParse time:", parseTime)
+	fmt.Println("\tInsert nodes time:", insertTime)
+	fmt.Println("\tColoring nodes time:", coloringTime)
+}
 
-	parsedEntry := parseEntry(europeMap)
+func main() {
+	//europeMap := "sp pt fr an\nfr it be lu ch de an\nbe lu nl\nde be nl lu dk pl cz at ch li\nit ch si at\nat ch li si hu sk\nhr hu si ba rs me\nmk al bg el rs\nbg el ro tr\nrs me al ro hu ba\nba me\nsi hu\nsk hu cz ua pl\npl ru lt by ua cz\nua ro by ru md\nro mo hu\nfi se no ru\nno se ru\nlv ru lt ee bg\nru ee lt bg ge az\ntr am ge\nge az"
+	southAmericaMap := "ar cl bo py br uy\nbo cl py pe br\npy br\nuy br\npe br ec co\nbr gy sr ve co fr\nve co\nec co"
+
+	var start time.Time
+	var parseTime, insertTime, coloringTime time.Duration
+
+	start = time.Now()
+	parsedEntry := parseEntry(southAmericaMap)
+	parseTime = time.Since(start)
+
 	var graph Graph
+	start = time.Now()
 	for node, neighbors := range parsedEntry {
 		graph.insertNode(node, neighbors)
 	}
+	insertTime = time.Since(start)
+
 	testInsert(&graph)
+
+	start = time.Now()
 	graph.color(0)
+	coloringTime = time.Since(start)
+
 	testColoringMap(&graph)
-	graph.printTuples()
+
+	printTimeResults(parseTime, insertTime, coloringTime)
 }
