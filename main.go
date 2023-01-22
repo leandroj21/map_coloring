@@ -1,93 +1,43 @@
 package main
 
 import (
+	"coloring_map/src"
 	"fmt"
 	"strings"
 	"time"
 )
 
-const amountOfColors int = 4
-
-type Edge struct {
-	label string
-}
-
-type Node struct {
-	// Node name
-	label string
-	// 0 for not visited, -1 for already looked nodes and 1 for visited
-	visited           int
-	previousNodeIndex int
-	neighbors         []Edge
-	color             int
-}
-
-type Graph struct {
-	nodes []*Node
-	// nil by default
-	indexes      map[string]int
-	inited       bool
-	nodesColored int
-}
-
-// Inserts a node in the graph
-func (graph *Graph) insertNode(nodeLabel string, edgesLabels []string) {
-	// Init indexes map
-	if !graph.inited {
-		graph.indexes = make(map[string]int)
-		graph.inited = true
-	}
-
-	node := Node{label: nodeLabel, previousNodeIndex: -1}
-	for _, edgeLabel := range edgesLabels {
-		edge := Edge{edgeLabel}
-		node.neighbors = append(node.neighbors, edge)
-
-		if idx, exists := graph.indexes[edgeLabel]; exists {
-			if _, isIn := searchInNeighbors(nodeLabel, graph.nodes[idx].neighbors); !isIn {
-				graph.nodes[idx].neighbors = append(graph.nodes[idx].neighbors, Edge{label: nodeLabel})
+func testColoringMap(graph *src.Graph) {
+	someError := false
+	var fails uint
+	for _, node := range graph.Nodes {
+		for _, neighbor := range node.Neighbors {
+			if graph.Nodes[graph.Indexes[neighbor.Label]].Color == node.Color {
+				fmt.Printf("%s and %s FAILED\n", node.Label, neighbor.Label)
+				someError = true
+				fails++
 			}
 		}
 	}
 
-	graph.nodes = append(graph.nodes, &node)
-	graph.indexes[nodeLabel] = len(graph.nodes) - 1
-	return
-}
-
-// Prints the current state of the graph
-func (graph *Graph) printState() {
-	for index, node := range graph.nodes {
-		fmt.Printf("(%2d) %s --> %v\n", index, node.label, node.neighbors)
+	if someError {
+		fmt.Println("Map coloring does not work. Fails:", fails)
+	} else {
+		fmt.Println("Map coloring works.")
 	}
 }
 
-func (graph *Graph) printTuples() {
-	for _, node := range graph.nodes {
-		fmt.Printf("(%s, %d)%s", node.label, node.color, ", ")
-	}
-}
-
-// Searches a given string [str] in a slice of strings
-// Returns a tuple of the index and the boolean value of the existence
-func searchIn(str string, slice []string) (int, bool) {
-	for idx, value := range slice {
-		if value == str {
-			return idx, true
+// Test if all the indexes saved in graph.indexes are correct
+func testInsert(g *src.Graph) {
+	for idxReal, value := range g.Nodes {
+		if g.Indexes[value.Label] != idxReal {
+			fmt.Printf("INDEX ERROR: %s (idx in map: %d) should be in %d\n",
+				value.Label,
+				g.Indexes[value.Label],
+				idxReal,
+			)
 		}
 	}
-
-	return -1, false
-}
-
-func searchInNeighbors(str string, slice []Edge) (int, bool) {
-	for idx, value := range slice {
-		if value.label == str {
-			return idx, true
-		}
-	}
-
-	return -1, false
 }
 
 // Parses an entry like "sp fr\nfr it be", where sp is the node and the other
@@ -111,95 +61,18 @@ func parseEntry(entry string) (result map[string][]string) {
 			if _, exists := result[neighbor]; !exists {
 				justAdded = append(justAdded, neighbor)
 				result[neighbor] = []string{node}
-			} else if _, recentlyAdded := searchIn(neighbor, justAdded); exists && recentlyAdded {
+			} else if _, recentlyAdded := src.SearchIn(neighbor, justAdded); exists && recentlyAdded {
 				result[neighbor] = append(result[neighbor], node)
 			}
 
 			// Get missing links
-			if _, exists := searchIn(node, result[neighbor]); !exists {
+			if _, exists := src.SearchIn(node, result[neighbor]); !exists {
 				result[neighbor] = append(result[neighbor], node)
 			}
 		}
 	}
 
 	return
-}
-
-func (graph *Graph) isSafeToColor(color, index int) bool {
-	node := graph.nodes[index]
-	for _, neighbor := range node.neighbors {
-		if color == graph.nodes[graph.indexes[neighbor.label]].color {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (graph *Graph) getIndexUncoloredNeighbor(index int) int {
-	for _, neighbor := range graph.nodes[index].neighbors {
-		neighborIndex := graph.indexes[neighbor.label]
-		if graph.nodes[neighborIndex].color == 0 {
-			return neighborIndex
-		}
-	}
-	return -1
-}
-
-// Colors every node, but a node and any of its neighbors cannot have
-// the same color
-func (graph *Graph) color(index int) bool {
-	if graph.nodesColored >= len(graph.nodes) {
-		return true
-	}
-
-	for c := 1; c <= amountOfColors; c++ {
-		if !graph.isSafeToColor(c, index) {
-			continue
-		}
-
-		graph.nodes[index].color = c
-		graph.nodesColored++
-
-		nextIdx := index + 1
-		if graph.color(nextIdx) {
-			return true
-		}
-
-		graph.nodes[index].color = 0
-		graph.nodesColored--
-	}
-
-	return false
-}
-
-func testColoringMap(graph *Graph) {
-	someError := false
-	var fails uint
-	for _, node := range graph.nodes {
-		for _, neighbor := range node.neighbors {
-			if graph.nodes[graph.indexes[neighbor.label]].color == node.color {
-				fmt.Printf("%s and %s FAILED\n", node.label, neighbor.label)
-				someError = true
-				fails++
-			}
-		}
-	}
-
-	if someError {
-		fmt.Println("Map coloring does not work. Fails:", fails)
-	} else {
-		fmt.Println("Map coloring works.")
-	}
-}
-
-// Test if all the indexes saved in graph.indexes are correct
-func testInsert(g *Graph) {
-	for idxReal, value := range g.nodes {
-		if g.indexes[value.label] != idxReal {
-			fmt.Printf("INDEX ERROR: %s (idx in map: %d) should be in %d\n", value.label, g.indexes[value.label], idxReal)
-		}
-	}
 }
 
 func printTimeResults(parseTime, insertTime, coloringTime time.Duration) {
@@ -220,17 +93,17 @@ func main() {
 	parsedEntry := parseEntry(southAmericaMap)
 	parseTime = time.Since(start)
 
-	var graph Graph
+	var graph src.Graph
 	start = time.Now()
 	for node, neighbors := range parsedEntry {
-		graph.insertNode(node, neighbors)
+		graph.InsertNode(node, neighbors)
 	}
 	insertTime = time.Since(start)
 
 	testInsert(&graph)
 
 	start = time.Now()
-	graph.color(0)
+	graph.Color()
 	coloringTime = time.Since(start)
 
 	testColoringMap(&graph)
