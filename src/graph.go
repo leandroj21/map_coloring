@@ -25,12 +25,17 @@ type Graph struct {
 	nodesColored int
 }
 
+// InitGraph Inits the indexes map of the graph
+func (graph *Graph) InitGraph() {
+	graph.Indexes = make(map[string]int)
+	graph.inited = true
+}
+
 // InsertNode Inserts a node in the graph
 func (graph *Graph) InsertNode(nodeLabel string, edgesLabels []string) {
 	// Init Indexes map
 	if !graph.inited {
-		graph.Indexes = make(map[string]int)
-		graph.inited = true
+		graph.InitGraph()
 	}
 
 	node := Node{Label: nodeLabel}

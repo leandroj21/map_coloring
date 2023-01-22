@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func testColoringMap(graph *src.Graph) {
+func testMapColoring(graph *src.Graph) {
 	someError := false
 	var fails uint
 	for _, node := range graph.Nodes {
@@ -106,7 +106,7 @@ func main() {
 	graph.Color()
 	coloringTime = time.Since(start)
 
-	testColoringMap(&graph)
+	testMapColoring(&graph)
 
 	printTimeResults(parseTime, insertTime, coloringTime)
 }
