@@ -14,6 +14,7 @@ func SearchIn(str string, slice []string) (int, bool) {
 	return -1, false
 }
 
+// SearchInNeighbors Returns a tuple of the index and the boolean value of the existence
 func SearchInNeighbors(str string, slice []Edge) (int, bool) {
 	for idx, value := range slice {
 		if value.Label == str {
@@ -21,6 +22,16 @@ func SearchInNeighbors(str string, slice []Edge) (int, bool) {
 		}
 	}
 
+	return -1, false
+}
+
+// SearchInGraph Returns a tuple of the index and the boolean value of the existence
+func SearchInGraph(nodeLabel string, graph *Graph) (int, bool) {
+	for idx, node := range graph.Nodes {
+		if node.Label == nodeLabel {
+			return idx, true
+		}
+	}
 	return -1, false
 }
 

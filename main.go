@@ -11,7 +11,13 @@ func testMapColoring(graph *src.Graph) {
 	var fails uint
 	for _, node := range graph.Nodes {
 		for _, neighbor := range node.Neighbors {
-			if graph.Nodes[graph.Indexes[neighbor.Label]].Color == node.Color {
+			indexInGraph, exists := src.SearchInGraph(neighbor.Label, graph)
+			if !exists {
+				fmt.Println("ERROR IN TESTING: NON-EXIST NODE")
+				continue
+			}
+
+			if graph.Nodes[indexInGraph].Color == node.Color {
 				fmt.Printf("%s and %s FAILED\n", node.Label, neighbor.Label)
 				someError = true
 				fails++
@@ -23,19 +29,6 @@ func testMapColoring(graph *src.Graph) {
 		fmt.Println("Map coloring does not work. Fails:", fails)
 	} else {
 		fmt.Println("Map coloring works.")
-	}
-}
-
-// Test if all the indexes saved in graph.indexes are correct
-func testInsert(g *src.Graph) {
-	for idxReal, value := range g.Nodes {
-		if g.Indexes[value.Label] != idxReal {
-			fmt.Printf("INDEX ERROR: %s (idx in map: %d) should be in %d\n",
-				value.Label,
-				g.Indexes[value.Label],
-				idxReal,
-			)
-		}
 	}
 }
 
@@ -64,8 +57,6 @@ func main() {
 		start = time.Now()
 		graph.InsertNodesInOrder(parsedEntry, order)
 		insertTime = time.Since(start)
-
-		testInsert(&graph)
 
 		start = time.Now()
 		graph.Color()

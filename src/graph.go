@@ -19,32 +19,17 @@ type Node struct {
 }
 
 type Graph struct {
-	Nodes []*Node
-	// nil by default
-	Indexes      map[string]int
-	inited       bool
+	Nodes        []*Node
 	nodesColored int
-}
-
-// InitGraph Inits the indexes map of the graph
-func (graph *Graph) InitGraph() {
-	graph.Indexes = make(map[string]int)
-	graph.inited = true
 }
 
 // InsertNode Inserts a node in the graph
 func (graph *Graph) InsertNode(nodeLabel string, edgesLabels []string) {
-	// Init Indexes map
-	if !graph.inited {
-		graph.InitGraph()
-	}
-
 	node := Node{Label: nodeLabel}
 	for _, edgeLabel := range edgesLabels {
 		edge := Edge{edgeLabel}
 		node.Neighbors = append(node.Neighbors, edge)
-
-		if idx, exists := graph.Indexes[edgeLabel]; exists {
+		if idx, exists := SearchInGraph(edgeLabel, graph); exists {
 			if _, isIn := SearchInNeighbors(nodeLabel, graph.Nodes[idx].Neighbors); !isIn {
 				graph.Nodes[idx].Neighbors = append(graph.Nodes[idx].Neighbors, Edge{Label: nodeLabel})
 			}
@@ -52,7 +37,6 @@ func (graph *Graph) InsertNode(nodeLabel string, edgesLabels []string) {
 	}
 
 	graph.Nodes = append(graph.Nodes, &node)
-	graph.Indexes[nodeLabel] = len(graph.Nodes) - 1
 	return
 }
 
@@ -87,22 +71,17 @@ func (graph *Graph) PrintTuples() {
 func (graph *Graph) isSafeToColor(Color, index int) bool {
 	node := graph.Nodes[index]
 	for _, neighbor := range node.Neighbors {
-		if Color == graph.Nodes[graph.Indexes[neighbor.Label]].Color {
+		indexInGraph, exists := SearchInGraph(neighbor.Label, graph)
+		if !exists {
+			continue
+		}
+
+		if Color == graph.Nodes[indexInGraph].Color {
 			return false
 		}
 	}
 
 	return true
-}
-
-func (graph *Graph) getIndexUncoloredNeighbor(index int) int {
-	for _, neighbor := range graph.Nodes[index].Neighbors {
-		neighborIndex := graph.Indexes[neighbor.Label]
-		if graph.Nodes[neighborIndex].Color == 0 {
-			return neighborIndex
-		}
-	}
-	return -1
 }
 
 // Colors every node, but a node and any of its Neighbors cannot have
