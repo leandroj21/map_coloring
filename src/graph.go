@@ -11,9 +11,7 @@ type Edge struct {
 
 type Node struct {
 	// Node name
-	Label string
-	// 0 for not visited, -1 for already looked Nodes and 1 for visited
-	Visited   int
+	Label     string
 	Neighbors []Edge
 	Color     int
 }

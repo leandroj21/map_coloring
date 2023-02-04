@@ -14,6 +14,15 @@ func testMapColoring(graph *src.Graph) {
 			indexInGraph, exists := src.SearchInGraph(neighbor.Label, graph)
 			if !exists {
 				fmt.Println("ERROR IN TESTING: NON-EXIST NODE")
+				someError = true
+				fails++
+				continue
+			}
+
+			if node.Color == 0 {
+				fmt.Printf("NOT COLORED NODE: %s\n", node.Label)
+				someError = true
+				fails++
 				continue
 			}
 
