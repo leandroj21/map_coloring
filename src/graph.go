@@ -27,11 +27,6 @@ func (graph *Graph) InsertNode(nodeLabel string, edgesLabels []string) {
 	for _, edgeLabel := range edgesLabels {
 		edge := Edge{edgeLabel}
 		node.Neighbors = append(node.Neighbors, edge)
-		if idx, exists := SearchInGraph(edgeLabel, graph); exists {
-			if _, isIn := SearchInNeighbors(nodeLabel, graph.Nodes[idx].Neighbors); !isIn {
-				graph.Nodes[idx].Neighbors = append(graph.Nodes[idx].Neighbors, Edge{Label: nodeLabel})
-			}
-		}
 	}
 
 	graph.Nodes = append(graph.Nodes, &node)
